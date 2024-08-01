@@ -12,4 +12,6 @@ Vagrant.configure("2") do |config|
   config.vm.provider "vmware_fusion" do |vm|
     vm.gui = true
   end
+  config.winrm.retry_limit = 30
+  config.winrm.retry_delay = 10
 end

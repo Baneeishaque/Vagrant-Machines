@@ -9,5 +9,7 @@ workflows:
         script: |
           brew tap hashicorp/tap
           brew install hashicorp/tap/hashicorp-vagrant
-      # - vagrant up
-      # - vagrant package --output my-box.box
+      - name: Build Vagrant Box
+        script: |
+          vagrant up
+          vagrant package --output box/windows-11-enterprise-evaluation-10.0.26100.Build.26100-virtual-box.box --vagrantfile Vagrantfile

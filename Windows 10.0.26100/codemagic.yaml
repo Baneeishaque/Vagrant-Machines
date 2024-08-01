@@ -1,0 +1,13 @@
+workflows:
+  build-vagrant-box:
+    name: Build Vagrant Box
+    instance_type: mac_mini_m1
+    scripts:
+      - name: Install VirtualBox
+        script: brew install --cask virtualbox@beta
+      - name: Install Vagrant
+        script: |
+          brew tap hashicorp/tap
+          brew install hashicorp/tap/hashicorp-vagrant
+      # - vagrant up
+      # - vagrant package --output my-box.box

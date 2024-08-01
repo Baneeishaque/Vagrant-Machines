@@ -10,6 +10,11 @@ workflows:
           brew tap hashicorp/tap
           brew install hashicorp/tap/hashicorp-vagrant
       - name: Build Vagrant Box
-        script: |
-          vagrant up
-          vagrant package --output box/windows-11-enterprise-evaluation-10.0.26100.Build.26100-virtual-box.box --vagrantfile Vagrantfile
+        script: vagrant up
+      # - name: Check for PowerShell Core
+      #   script: vagrant ssh --command "pwsh --version"
+      # - name: Check for PowerShell Desktop
+      #   script: vagrantssh --command "$PSVersionTable"
+      # - name: Check for PowerShell Desktop
+      #   script: vagrantssh --command "powershell --version"
+      # - vagrant package --output box/windows-11-enterprise-evaluation-10.0.26100.Build.26100-virtual-box.box --vagrantfile Vagrantfile

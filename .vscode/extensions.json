@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "bbenoist.vagrant",
     "donjayamanne.githistory",
     "eamodio.gitlens",
     "fittentech.fitten-code",
@@ -9,6 +10,7 @@
     "Google.geminicodeassist",
     "hashhar.gitattributes",
     "lang2hong.githd",
+    "marcostazi.VS-code-vagrantfile",
     "mhutchie.git-graph",
     "moshfeu.compare-folders",
     "moshfeu.diff-merge",

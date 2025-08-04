@@ -28,6 +28,7 @@
     "vscode.json-language-features",
     "vscode.merge-conflict",
     "vscode.references-view",
+    "vscode.ruby",
     "vscode.search-result",
     "vscode.terminal-suggest",
     "vscode.yaml"

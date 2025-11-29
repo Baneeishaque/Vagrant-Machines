@@ -25,23 +25,23 @@ case "$provider" in
       exit 1
     fi
     ;;
-  docker)
-    if ! command -v docker >/dev/null 2>&1; then
-      sudo apt-get update
-      sudo apt-get install -y docker.io || { echo "Error: Failed to install Docker." >&2; exit 1; }
-    fi
-    if ! command -v docker >/dev/null 2>&1; then
-      echo "Error: Docker not available after install." >&2
-      exit 1
-    fi
-    if ! vagrant plugin list | grep -q vagrant-docker-compose; then
-      vagrant plugin install vagrant-docker-compose || { echo "Error: Failed to install vagrant-docker-compose plugin." >&2; exit 1; }
-    fi
-    if ! vagrant plugin list | grep -q vagrant-docker-compose; then
-      echo "Error: vagrant-docker-compose plugin not available after install." >&2
-      exit 1
-    fi
-    ;;
+  # docker)
+  #   if ! command -v docker >/dev/null 2>&1; then
+  #     sudo apt-get update
+  #     sudo apt-get install -y docker.io || { echo "Error: Failed to install Docker." >&2; exit 1; }
+  #   fi
+  #   if ! command -v docker >/dev/null 2>&1; then
+  #     echo "Error: Docker not available after install." >&2
+  #     exit 1
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-docker-compose; then
+  #     vagrant plugin install vagrant-docker-compose || { echo "Error: Failed to install vagrant-docker-compose plugin." >&2; exit 1; }
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-docker-compose; then
+  #     echo "Error: vagrant-docker-compose plugin not available after install." >&2
+  #     exit 1
+  #   fi
+  #   ;;
   # qemu)
   #   if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
   #     sudo apt-get update

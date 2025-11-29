@@ -33,7 +33,8 @@
     "vscode.ruby",
     "vscode.search-result",
     "vscode.terminal-suggest",
-    "vscode.yaml"
+    "vscode.yaml",
+    "xshrim.txt-syntax"
   ]
 }
 

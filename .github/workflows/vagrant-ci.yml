@@ -3,12 +3,18 @@ on:
   push:
     paths:
       - '**/Vagrantfile'
+      
   workflow_dispatch:
     inputs:
       vagrantfile_path:
         description: 'Path to the Vagrantfile to test (relative to repo root)'
         required: false
         default: ''
+      box_name:
+        description: 'Vagrant Cloud box name (e.g. cloudicio/ubuntu-desktop) to test (overrides vagrantfile_path)'
+        required: false
+        default: ''
+
 jobs:
   vagrant-test:
     runs-on: ubuntu-latest
@@ -136,12 +142,29 @@ jobs:
             fi
           fi
           echo "providers=$providers" >> $GITHUB_OUTPUT
-      - name: Find Vagrantfiles to test
+
+      - name: Find Vagrantfiles to test or generate from box
         id: vagrantfiles
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.vagrantfile_path }}" ]]; then
-            echo "Manual run: using input Vagrantfile path"
-            echo "files=${{ github.event.inputs.vagrantfile_path }}" >> $GITHUB_OUTPUT
+          set -e
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ -n "${{ github.event.inputs.box_name }}" ]]; then
+              # Generate a temporary Vagrantfile for the given box
+              mkdir -p .ci-tmp
+              cat > .ci-tmp/Vagrantfile <<EOF
+              Vagrant.configure("2") do |config|
+                config.vm.box = "${{ github.event.inputs.box_name }}"
+              end
+              EOF
+              echo "Manual run: using generated Vagrantfile for box ${{ github.event.inputs.box_name }}"
+              echo "files=.ci-tmp/Vagrantfile" >> $GITHUB_OUTPUT
+            elif [[ -n "${{ github.event.inputs.vagrantfile_path }}" ]]; then
+              echo "Manual run: using input Vagrantfile path"
+              echo "files=${{ github.event.inputs.vagrantfile_path }}" >> $GITHUB_OUTPUT
+            else
+              echo "Error: On workflow_dispatch, either vagrantfile_path or box_name must be provided." >&2
+              exit 1
+            fi
           else
             git fetch origin ${{ github.event.before }}
             git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' > changed_vagrantfiles.txt || true

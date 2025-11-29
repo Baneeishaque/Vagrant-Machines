@@ -59,23 +59,23 @@ case "$provider" in
   #     exit 1
   #   fi
   #   ;;
-  libvirt)
-    if ! command -v virsh >/dev/null 2>&1; then
-      sudo apt-get update
-      sudo apt-get install -y libvirt-daemon-system libvirt-clients bridge-utils ebtables dnsmasq-base libvirt-dev || { echo "Error: Failed to install libvirt and dependencies." >&2; exit 1; }
-    fi
-    if ! command -v virsh >/dev/null 2>&1; then
-      echo "Error: libvirt/virsh not available after install." >&2
-      exit 1
-    fi
-    if ! vagrant plugin list | grep -q vagrant-libvirt; then
-      vagrant plugin install vagrant-libvirt || { echo "Error: Failed to install vagrant-libvirt plugin." >&2; exit 1; }
-    fi
-    if ! vagrant plugin list | grep -q vagrant-libvirt; then
-      echo "Error: vagrant-libvirt plugin not available after install." >&2
-      exit 1
-    fi
-    ;;
+  # libvirt)
+  #   if ! command -v virsh >/dev/null 2>&1; then
+  #     sudo apt-get update
+  #     sudo apt-get install -y libvirt-daemon-system libvirt-clients bridge-utils ebtables dnsmasq-base libvirt-dev || { echo "Error: Failed to install libvirt and dependencies." >&2; exit 1; }
+  #   fi
+  #   if ! command -v virsh >/dev/null 2>&1; then
+  #     echo "Error: libvirt/virsh not available after install." >&2
+  #     exit 1
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-libvirt; then
+  #     vagrant plugin install vagrant-libvirt || { echo "Error: Failed to install vagrant-libvirt plugin." >&2; exit 1; }
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-libvirt; then
+  #     echo "Error: vagrant-libvirt plugin not available after install." >&2
+  #     exit 1
+  #   fi
+  #   ;;
   *)
     echo "Warning: Unknown or unsupported provider '$provider', skipping installation." >&2
     exit 1

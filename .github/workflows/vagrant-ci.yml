@@ -166,10 +166,6 @@ jobs:
             for provider in $PROVIDERS; do
               echo "Testing provider: $provider"
               cd "$dir"
-              if [[ "$provider" == "qemu" ]]; then
-                # QEMU provider: ensure vagrant plugin and try up/halt/destroy
-                vagrant plugin install vagrant-qemu || true
-              fi
               vagrant up --provider=$provider || { echo "vagrant up failed for $provider in $dir"; exit 1; }
               vagrant status
               vagrant halt || { echo "vagrant halt failed for $provider in $dir"; exit 1; }

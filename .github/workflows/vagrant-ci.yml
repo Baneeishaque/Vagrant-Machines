@@ -100,21 +100,16 @@ jobs:
           version: '10.1.2'
           targets: 'x86_64,aarch64,arm'
 
-      - name: Install Vagrant plugins for providers
-        run: |
-          vagrant plugin install vagrant-libvirt || true
-          vagrant plugin install vagrant-qemu || true
-          vagrant plugin install vagrant-docker-compose || true
-          vagrant plugin install vagrant-vbguest || true
-
-      - name: Set available providers
+      - name: Detect providers and install plugins
         id: providers
         run: |
           providers=""
           if command -v vboxmanage >/dev/null 2>&1; then
+            vagrant plugin install vagrant-vbguest || true
             providers="virtualbox"
           fi
           if command -v docker >/dev/null 2>&1; then
+            vagrant plugin install vagrant-docker-compose || true
             if [[ -n "$providers" ]]; then
               providers="$providers docker"
             else
@@ -122,6 +117,7 @@ jobs:
             fi
           fi
           if command -v qemu-system-x86_64 >/dev/null 2>&1; then
+            vagrant plugin install vagrant-qemu || true
             if [[ -n "$providers" ]]; then
               providers="$providers qemu"
             else
@@ -129,6 +125,10 @@ jobs:
             fi
           fi
           if command -v virsh >/dev/null 2>&1; then
+            # Ensure libvirt development files are present for vagrant-libvirt plugin
+            sudo apt-get update
+            sudo apt-get install -y libvirt-dev
+            vagrant plugin install vagrant-libvirt || true
             if [[ -n "$providers" ]]; then
               providers="$providers libvirt"
             else
@@ -136,7 +136,6 @@ jobs:
             fi
           fi
           echo "providers=$providers" >> $GITHUB_OUTPUT
-          
       - name: Find Vagrantfiles to test
         id: vagrantfiles
         run: |

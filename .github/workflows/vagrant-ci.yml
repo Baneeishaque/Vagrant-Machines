@@ -26,10 +26,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Vagrant
-        run: .github/scripts/install_vagrant.sh
-        shell: bash
-
       - name: Calculate apt cache key
         id: aptcachekey
         run: .github/scripts/calc_apt_cache_key.sh

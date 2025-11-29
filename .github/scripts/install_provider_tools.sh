@@ -77,7 +77,7 @@ case "$provider" in
     fi
     ;;
   *)
-    echo "Error: Unknown provider $provider" >&2
+    echo "Warning: Unknown or unsupported provider '$provider', skipping installation." >&2
     exit 1
     ;;
 esac

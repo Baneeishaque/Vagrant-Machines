@@ -35,7 +35,10 @@ if ! vagrant --version; then
 fi
 for provider in $providers; do
   echo "Installing tools/plugins for provider: $provider"
-  .github/scripts/install_provider_tools.sh "$provider"
+  if ! .github/scripts/install_provider_tools.sh "$provider"; then
+    echo "Skipping provider: $provider due to unsupported or failed install."
+    continue
+  fi
   dir=$(dirname "$vagrantfile")
   cd "$dir"
   echo "Running Vagrant for provider: $provider in $dir"

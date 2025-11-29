@@ -204,8 +204,8 @@ jobs:
             box_name=$(grep -Eo 'config.vm.box\s*=\s*"[^"]+"' "$file" | head -1 | cut -d'"' -f2)
             box_version=$(grep -Eo 'config.vm.box_version\s*=\s*"[^"]+"' "$file" | head -1 | cut -d'"' -f2)
             if [[ -z "$box_name" ]]; then
-              echo "No box name found in $file, skipping arch/provider check."
-              box_name=""
+              echo "Error: No box name found in $file. Aborting." >&2
+              exit 1
             fi
             # Fetch box metadata only once per box_name+box_version
             box_json=""

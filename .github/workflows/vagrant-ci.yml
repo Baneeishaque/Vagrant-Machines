@@ -3,6 +3,12 @@ on:
   push:
     paths:
       - '**/Vagrantfile'
+  workflow_dispatch:
+    inputs:
+      vagrantfile_path:
+        description: 'Path to the Vagrantfile to test (relative to repo root)'
+        required: false
+        default: ''
 jobs:
   vagrant-test:
     runs-on: ubuntu-latest
@@ -131,23 +137,27 @@ jobs:
           fi
           echo "providers=$providers" >> $GITHUB_OUTPUT
           
-      - name: Find changed Vagrantfiles
-        id: changed_vagrantfiles
+      - name: Find Vagrantfiles to test
+        id: vagrantfiles
         run: |
-          git fetch origin ${{ github.event.before }}
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' || true
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' > changed_vagrantfiles.txt || true
-          cat changed_vagrantfiles.txt
-          echo "files=$(cat changed_vagrantfiles.txt | xargs)" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.vagrantfile_path }}" ]]; then
+            echo "Manual run: using input Vagrantfile path"
+            echo "files=${{ github.event.inputs.vagrantfile_path }}" >> $GITHUB_OUTPUT
+          else
+            git fetch origin ${{ github.event.before }}
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' > changed_vagrantfiles.txt || true
+            cat changed_vagrantfiles.txt
+            echo "files=$(cat changed_vagrantfiles.txt | xargs)" >> $GITHUB_OUTPUT
+          fi
 
       - name: Test Vagrant up/halt/destroy for each provider
         env:
           PROVIDERS: ${{ steps.providers.outputs.providers }}
-          FILES: ${{ steps.changed_vagrantfiles.outputs.files }}
+          FILES: ${{ steps.vagrantfiles.outputs.files }}
         run: |
           set -e
           if [[ -z "$FILES" ]]; then
-            echo "No changed Vagrantfiles found."
+            echo "No Vagrantfiles to test."
             exit 0
           fi
           for file in $FILES; do

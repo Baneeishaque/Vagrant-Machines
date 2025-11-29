@@ -149,8 +149,14 @@ jobs:
             echo "files=$(cat changed_vagrantfiles.txt | xargs)" >> $GITHUB_OUTPUT
           fi
           
+
       - name: Install jq for box metadata parsing
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y jq
+          else
+            echo "jq already installed"
+          fi
 
       - name: Test Vagrant up/halt/destroy for each provider
         env:

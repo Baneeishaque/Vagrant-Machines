@@ -26,15 +26,6 @@ jobs:
         run: .github/scripts/install_vagrant.sh
         shell: bash
 
-      - name: Try to install VirtualBox (best effort)
-        run: .github/scripts/install_virtualbox.sh
-        shell: bash
-
-      - name: Check Docker availability
-        run: .github/scripts/check_docker.sh
-        shell: bash
-
-      # QEMU install and caching steps moved up before provider detection
       - name: Calculate apt cache key
         id: aptcachekey
         run: .github/scripts/calc_apt_cache_key.sh
@@ -52,27 +43,6 @@ jobs:
         run: .github/scripts/restore_apt_cache.sh
         shell: bash
 
-      - name: Install QEMU, libvirt, and dependencies
-        id: qemu_apt
-        run: .github/scripts/install_qemu_libvirt.sh
-        shell: bash
-
-      - name: Save new .deb files to cache
-        run: .github/scripts/save_apt_cache.sh
-        shell: bash
-
-      - name: Install QEMU from source (fallback)
-        if: steps.qemu_apt.outputs.success == 'false'
-        uses: arceos-org/setup-qemu@v1.0.2
-        with:
-          version: '10.1.2'
-          targets: 'x86_64,aarch64,arm'
-
-      - name: Detect providers and install plugins
-        id: providers
-        run: .github/scripts/detect_providers.sh
-        shell: bash
-
       - name: Find Vagrantfiles to test or generate from box
         id: vagrantfiles
         run: |
@@ -84,13 +54,18 @@ jobs:
           .github/scripts/find_vagrantfiles.sh
         shell: bash
 
-      - name: Install jq for box metadata parsing
-        run: .github/scripts/install_jq.sh
+      - name: Test Vagrant up/halt/destroy for each supported provider
+        run: |
+          set -e
+          get_host_arch() {
+            uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/'
+          }
+          host_arch=$(get_host_arch)
+          for file in ${{ steps.vagrantfiles.outputs.files }}; do
+            .github/scripts/vagrant_test_matrix.sh "$file" "$host_arch"
+          done
         shell: bash
 
-      - name: Test Vagrant up/halt/destroy for each provider
-        env:
-          PROVIDERS: ${{ steps.providers.outputs.providers }}
-          FILES: ${{ steps.vagrantfiles.outputs.files }}
-        run: .github/scripts/test_vagrantfile_providers.sh
+      - name: Save new .deb files to cache
+        run: .github/scripts/save_apt_cache.sh
         shell: bash

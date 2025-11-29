@@ -1,0 +1,169 @@
+name: Vagrantfile CI Test
+on:
+  push:
+    paths:
+      - '**/Vagrantfile'
+jobs:
+  vagrant-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vagrant
+        run: |
+          if ! command -v vagrant >/dev/null 2>&1; then
+              sudo apt-get update
+              sudo apt-get install -y curl gnupg lsb-release
+              curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+              echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+              sudo apt-get update && sudo apt-get install -y vagrant
+          fi
+          vagrant --version
+
+      - name: Try to install VirtualBox (best effort)
+        run: |
+          set +e
+            sudo apt-get update
+            sudo apt-get install -y virtualbox || echo "VirtualBox install failed or not supported"
+            set -e
+            if command -v vboxmanage >/dev/null 2>&1; then
+              echo "VirtualBox available"
+            else
+              echo "VirtualBox not available"
+          fi
+
+      - name: Check Docker availability
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            echo "Docker available"
+          else
+            echo "Docker not available"
+          fi
+
+      # QEMU install and caching steps moved up before provider detection
+      - name: Calculate apt cache key
+        id: aptcachekey
+        run: |
+          aptHash() { echo "$1-$(apt-cache policy "$1" | grep -oP '(?<=Candidate:\s)(.+)')"; }
+          export -f aptHash
+          hash=$(echo "qemu-system-x86 qemu-system-arm qemu-system-aarch64 qemu-user-static qemu-utils ovmf" | xargs -rI {} bash -c 'aptHash {}' | tr '\n' '-' | md5sum | cut -f 1 -d ' ')
+          echo "key=apt-cache-$hash" >> $GITHUB_OUTPUT
+
+      - name: Cache apt .deb files
+        uses: actions/cache@v4
+        with:
+          path: .aptcache
+          key: ${{ steps.aptcachekey.outputs.key }}
+          restore-keys: |
+            apt-cache-
+
+      - name: Restore cached .deb files
+        run: |
+          sudo apt-get clean -yq
+          if compgen -G ".aptcache/*.deb" > /dev/null; then
+            sudo cp -l .aptcache/*.deb /var/cache/apt/archives
+          fi
+
+      - name: Install QEMU, libvirt, and dependencies
+        id: qemu_apt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qemu-system-x86 qemu-system-arm qemu-system-aarch64 qemu-user-static qemu-utils ovmf \
+            qemu-kvm \
+            libvirt-daemon-system libvirt-clients \
+            bridge-utils ebtables dnsmasq-base
+          if command -v qemu-system-x86_64 >/dev/null 2>&1; then
+            echo "QEMU installed via apt-get."
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "QEMU install via apt-get failed."
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Save new .deb files to cache
+        run: |
+          mkdir -p .aptcache
+          sudo cp -l /var/cache/apt/archives/*.deb .aptcache || true
+
+      - name: Install QEMU from source (fallback)
+        if: steps.qemu_apt.outputs.success == 'false'
+        uses: jirutka/download-and-build-qemu-action@v2
+        with:
+          version: '10.1.2'
+          targets: 'x86_64,aarch64,arm'
+
+      - name: Install Vagrant plugins for providers
+        run: |
+          vagrant plugin install vagrant-libvirt || true
+          vagrant plugin install vagrant-qemu || true
+          vagrant plugin install vagrant-docker-compose || true
+          vagrant plugin install vagrant-vbguest || true
+
+      - name: Set available providers
+        id: providers
+        run: |
+          providers=""
+          if command -v vboxmanage >/dev/null 2>&1; then
+            providers="virtualbox"
+          fi
+          if command -v docker >/dev/null 2>&1; then
+            if [[ -n "$providers" ]]; then
+              providers="$providers docker"
+            else
+              providers="docker"
+            fi
+          fi
+          if command -v qemu-system-x86_64 >/dev/null 2>&1; then
+            if [[ -n "$providers" ]]; then
+              providers="$providers qemu"
+            else
+              providers="qemu"
+            fi
+          fi
+          if command -v virsh >/dev/null 2>&1; then
+            if [[ -n "$providers" ]]; then
+              providers="$providers libvirt"
+            else
+              providers="libvirt"
+            fi
+          fi
+          echo "providers=$providers" >> $GITHUB_OUTPUT
+          
+      - name: Find changed Vagrantfiles
+        id: changed_vagrantfiles
+        run: |
+          git fetch origin ${{ github.event.before }}
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' || true
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Vagrantfile$' > changed_vagrantfiles.txt || true
+          cat changed_vagrantfiles.txt
+          echo "files=$(cat changed_vagrantfiles.txt | xargs)" >> $GITHUB_OUTPUT
+
+      - name: Test Vagrant up/halt/destroy for each provider
+        env:
+          PROVIDERS: ${{ steps.providers.outputs.providers }}
+          FILES: ${{ steps.changed_vagrantfiles.outputs.files }}
+        run: |
+          set -e
+          if [[ -z "$FILES" ]]; then
+            echo "No changed Vagrantfiles found."
+            exit 0
+          fi
+          for file in $FILES; do
+            dir=$(dirname "$file")
+            echo "Testing Vagrantfile in $dir"
+            for provider in $PROVIDERS; do
+              echo "Testing provider: $provider"
+              cd "$dir"
+              if [[ "$provider" == "qemu" ]]; then
+                # QEMU provider: ensure vagrant plugin and try up/halt/destroy
+                vagrant plugin install vagrant-qemu || true
+              fi
+              vagrant up --provider=$provider || { echo "vagrant up failed for $provider in $dir"; exit 1; }
+              vagrant status
+              vagrant halt || { echo "vagrant halt failed for $provider in $dir"; exit 1; }
+              vagrant destroy -f || { echo "vagrant destroy failed for $provider in $dir"; exit 1; }
+              cd -
+            done
+          done

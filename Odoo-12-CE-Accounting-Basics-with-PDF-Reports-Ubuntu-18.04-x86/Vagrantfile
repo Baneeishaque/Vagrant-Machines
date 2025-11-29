@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# https://portal.cloud.hashicorp.com/vagrant/discover/mshannaq/odoo12_ubuntu18.04_accounting_pdfreports
+
 Vagrant.configure("2") do |config|
   config.vm.box = "mshannaq/odoo12_ubuntu18.04_accounting_pdfreports"
   config.vm.box_version = "0.0.1"

@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# https://portal.cloud.hashicorp.com/vagrant/discover/cloudicio/ubuntu-desktop
+
 Vagrant.configure("2") do |config|
   config.vm.box = "cloudicio/ubuntu-desktop"
   config.vm.box_version = "24.04.1"

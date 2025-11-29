@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Usage: vagrant_test_matrix.sh <vagrantfile> <host_arch>
-# 1. Parse box name/version from Vagrantfile
-# 2. Get supported providers for box/arch
+# Usage: vagrant_test_matrix.sh <vagrantfile> <host_arch> [box_version]
+# 1. Parse box name/version from Vagrantfile or use provided box_version
+# 2. Get supported providers for box/arch/version
 # 3. For each provider: install tools/plugins, run vagrant up/halt/destroy
 set -e
 vagrantfile="$1"
 host_arch="$2"
+cli_box_version="$3"
 if [[ -z "$vagrantfile" || -z "$host_arch" ]]; then
-  echo "Usage: $0 <vagrantfile> <host_arch>" >&2
+  echo "Usage: $0 <vagrantfile> <host_arch> [box_version]" >&2
   exit 1
 fi
 box_name=$(grep -Eo 'config.vm.box\s*=\s*"[^"]+"' "$vagrantfile" | head -1 | cut -d'"' -f2)
 box_version=$(grep -Eo 'config.vm.box_version\s*=\s*"[^"]+"' "$vagrantfile" | head -1 | cut -d'"' -f2)
+if [[ -n "$cli_box_version" ]]; then
+  box_version="$cli_box_version"
+fi
 if [[ -z "$box_name" ]]; then
   echo "Error: No box name found in $vagrantfile" >&2
   exit 1

@@ -6,9 +6,10 @@ if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
     cat > .ci-tmp/Vagrantfile <<EOF
 Vagrant.configure("2") do |config|
   config.vm.box = "$BOX_NAME"
+  $( [[ -n "$BOX_VERSION" ]] && echo "config.vm.box_version = \"$BOX_VERSION\"")
 end
 EOF
-    echo "Manual run: using generated Vagrantfile for box $BOX_NAME"
+    echo "Manual run: using generated Vagrantfile for box $BOX_NAME version $BOX_VERSION"
     echo "files=.ci-tmp/Vagrantfile" >> "$GITHUB_OUTPUT"
   elif [[ -n "$VAGRANTFILE_PATH" ]]; then
     echo "Manual run: using input Vagrantfile path"

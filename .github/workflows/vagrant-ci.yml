@@ -14,6 +14,10 @@ on:
         description: 'Vagrant Cloud box name (e.g. cloudicio/ubuntu-desktop) to test (overrides vagrantfile_path)'
         required: false
         default: ''
+      box_version:
+        description: 'Vagrant Cloud box version (optional, used with box_name)'
+        required: false
+        default: ''
 
 jobs:
   vagrant-test:
@@ -48,6 +52,7 @@ jobs:
         run: |
           export GITHUB_EVENT_NAME="${{ github.event_name }}"
           export BOX_NAME="${{ github.event.inputs.box_name }}"
+          export BOX_VERSION="${{ github.event.inputs.box_version }}"
           export VAGRANTFILE_PATH="${{ github.event.inputs.vagrantfile_path }}"
           export GITHUB_BEFORE="${{ github.event.before }}"
           export GITHUB_SHA="${{ github.sha }}"
@@ -62,7 +67,7 @@ jobs:
           }
           host_arch=$(get_host_arch)
           for file in ${{ steps.vagrantfiles.outputs.files }}; do
-            .github/scripts/vagrant_test_matrix.sh "$file" "$host_arch"
+            .github/scripts/vagrant_test_matrix.sh "$file" "$host_arch" "${{ github.event.inputs.box_version }}"
           done
         shell: bash
 

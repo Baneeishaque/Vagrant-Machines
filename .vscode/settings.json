@@ -8,6 +8,7 @@
         "dnsmasq",
         "ebtables",
         "keyrings",
+        "ovmf",
         "Vagrantfiles",
         "vbguest",
         "virsh"

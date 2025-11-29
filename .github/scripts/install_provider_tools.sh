@@ -42,23 +42,23 @@ case "$provider" in
       exit 1
     fi
     ;;
-  qemu)
-    if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
-      sudo apt-get update
-      sudo apt-get install -y qemu-system-x86 qemu-system-arm qemu-system-aarch64 qemu-user-static qemu-utils ovmf qemu-kvm || { echo "Error: Failed to install QEMU." >&2; exit 1; }
-    fi
-    if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
-      echo "Error: QEMU not available after install." >&2
-      exit 1
-    fi
-    if ! vagrant plugin list | grep -q vagrant-qemu; then
-      vagrant plugin install vagrant-qemu || { echo "Error: Failed to install vagrant-qemu plugin." >&2; exit 1; }
-    fi
-    if ! vagrant plugin list | grep -q vagrant-qemu; then
-      echo "Error: vagrant-qemu plugin not available after install." >&2
-      exit 1
-    fi
-    ;;
+  # qemu)
+  #   if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
+  #     sudo apt-get update
+  #     sudo apt-get install -y qemu-system-x86 qemu-system-arm qemu-system-aarch64 qemu-user-static qemu-utils ovmf qemu-kvm || { echo "Error: Failed to install QEMU." >&2; exit 1; }
+  #   fi
+  #   if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
+  #     echo "Error: QEMU not available after install." >&2
+  #     exit 1
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-qemu; then
+  #     vagrant plugin install vagrant-qemu || { echo "Error: Failed to install vagrant-qemu plugin." >&2; exit 1; }
+  #   fi
+  #   if ! vagrant plugin list | grep -q vagrant-qemu; then
+  #     echo "Error: vagrant-qemu plugin not available after install." >&2
+  #     exit 1
+  #   fi
+  #   ;;
   libvirt)
     if ! command -v virsh >/dev/null 2>&1; then
       sudo apt-get update

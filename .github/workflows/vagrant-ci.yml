@@ -95,7 +95,7 @@ jobs:
 
       - name: Install QEMU from source (fallback)
         if: steps.qemu_apt.outputs.success == 'false'
-        uses: jirutka/download-and-build-qemu-action@v2
+        uses: arceos-org/setup-qemu@v1.0.2
         with:
           version: '10.1.2'
           targets: 'x86_64,aarch64,arm'

@@ -42,9 +42,9 @@ for provider in $providers; do
   dir=$(dirname "$vagrantfile")
   cd "$dir"
   echo "Running Vagrant for provider: $provider in $dir"
-  vagrant up --provider=$provider || { echo "vagrant up failed for $provider in $dir"; cd -; continue; }
+  vagrant up --provider=$provider || { echo "vagrant up failed for $provider in $dir"; cd -; exit 1; }
   vagrant status
-  vagrant halt || { echo "vagrant halt failed for $provider in $dir"; cd -; continue; }
-  vagrant destroy -f || { echo "vagrant destroy failed for $provider in $dir"; cd -; continue; }
+  vagrant halt || { echo "vagrant halt failed for $provider in $dir"; cd -; exit 1; }
+  vagrant destroy -f || { echo "vagrant destroy failed for $provider in $dir"; cd -; exit 1; }
   cd -
 done

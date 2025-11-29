@@ -18,8 +18,15 @@ EOF
     exit 1
   fi
 else
-  git fetch origin "$GITHUB_BEFORE"
+  if ! git fetch origin "$GITHUB_BEFORE"; then
+    echo "Error: git fetch failed for $GITHUB_BEFORE" >&2
+    exit 1
+  fi
   git diff --name-only "$GITHUB_BEFORE" "$GITHUB_SHA" | grep 'Vagrantfile$' > changed_vagrantfiles.txt || true
+  if [[ ! -s changed_vagrantfiles.txt ]]; then
+    echo "Error: No changed Vagrantfiles found between $GITHUB_BEFORE and $GITHUB_SHA" >&2
+    exit 1
+  fi
   cat changed_vagrantfiles.txt
   echo "files=$(cat changed_vagrantfiles.txt | xargs)" >> "$GITHUB_OUTPUT"
 fi

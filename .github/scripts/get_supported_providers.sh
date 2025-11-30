@@ -9,14 +9,16 @@ if [[ -z "$box_name" ]]; then
   echo "Error: box_name required" >&2
   exit 1
 fi
-# Ensure jq is installed
+
+# Install jq if missing (Linux: apt, macOS: brew)
 if ! command -v jq >/dev/null 2>&1; then
-  sudo apt-get update && sudo apt-get install -y jq || { echo "Error: Failed to install jq." >&2; exit 1; }
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install jq || { echo "Error: Failed to install jq (brew)." >&2; exit 1; }
+  else
+    sudo apt-get update && sudo apt-get install -y jq || { echo "Error: Failed to install jq (apt)." >&2; exit 1; }
+  fi
 fi
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Error: jq not found after install." >&2
-  exit 1
-fi
+
 api_url="https://vagrantcloud.com/api/v2/vagrant/${box_name}"
 box_json=$(curl -s "$api_url")
 if [[ -n "$box_version" ]]; then

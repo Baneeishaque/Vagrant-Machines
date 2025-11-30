@@ -7,11 +7,16 @@ if [[ -z "$provider" ]]; then
   echo "Error: provider required" >&2
   exit 1
 fi
+
 case "$provider" in
   virtualbox)
     if ! command -v vboxmanage >/dev/null 2>&1; then
-      sudo apt-get update
-      sudo apt-get install -y virtualbox || { echo "Error: Failed to install VirtualBox." >&2; exit 1; }
+      if [[ "$(uname)" == "Darwin" ]]; then
+        brew install --cask virtualbox || { echo "Error: Failed to install VirtualBox (brew)." >&2; exit 1; }
+      else
+        sudo apt-get update
+        sudo apt-get install -y virtualbox || { echo "Error: Failed to install VirtualBox (apt)." >&2; exit 1; }
+      fi
     fi
     if ! command -v vboxmanage >/dev/null 2>&1; then
       echo "Error: VirtualBox not available after install." >&2

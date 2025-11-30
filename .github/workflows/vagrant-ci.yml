@@ -21,17 +21,23 @@ on:
 
 jobs:
   vagrant-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Only run apt cache steps on Ubuntu
       - name: Calculate apt cache key
+        if: runner.os == 'Linux'
         id: aptcachekey
         run: .github/scripts/calc_apt_cache_key.sh
         shell: bash
 
       - name: Cache apt .deb files
+        if: runner.os == 'Linux'
         uses: actions/cache@v4
         with:
           path: .aptcache
@@ -40,6 +46,7 @@ jobs:
             apt-cache-
 
       - name: Restore cached .deb files
+        if: runner.os == 'Linux'
         run: .github/scripts/restore_apt_cache.sh
         shell: bash
 
@@ -68,5 +75,6 @@ jobs:
         shell: bash
 
       - name: Save new .deb files to cache
+        if: runner.os == 'Linux'
         run: .github/scripts/save_apt_cache.sh
         shell: bash

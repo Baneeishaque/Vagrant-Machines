@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Usage: get_supported_providers.sh <box_name> <box_version> <host_arch>
-# Outputs: space-separated list of supported providers for the box/arch
 set -e
 box_name="$1"
 box_version="$2"
@@ -20,7 +19,7 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 api_url="https://vagrantcloud.com/api/v2/vagrant/${box_name}"
-box_json=$(curl -s "$api_url")
+box_json=$(curl -s "$api_url" | tr -d '\n\r')
 if [[ -n "$box_version" ]]; then
   version_json=$(echo "$box_json" | jq -c --arg ver "$box_version" '.versions[] | select(.version==$ver)')
 else

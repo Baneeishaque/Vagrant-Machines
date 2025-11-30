@@ -18,13 +18,22 @@ on:
         description: 'Vagrant Cloud box version (optional, used with box_name)'
         required: false
         default: ''
+      os:
+        description: 'OS to run on'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - ubuntu-latest
+          - macos-latest
+          - both
 
 jobs:
   vagrant-test:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: ${{ fromJson('{"ubuntu-latest":["ubuntu-latest"],"macos-latest":["macos-latest"],"both":["ubuntu-latest","macos-latest"]}')[github.event.inputs.os] }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
